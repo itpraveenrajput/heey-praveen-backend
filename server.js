@@ -1,6 +1,6 @@
-
 const express = require("express");
 const cors = require("cors");
+const mongoose = require("mongoose");
 require("dotenv").config();
 
 const app = express();
@@ -18,12 +18,28 @@ app.get("/", (req, res) => {
 app.get("/api/health", (req, res) => {
   res.json({
     status: "OK",
-    project: "HEEY PRAVEEN"
+    database:
+      mongoose.connection.readyState === 1
+        ? "Connected"
+        : "Disconnected"
   });
 });
 
-const PORT = process.env.PORT || 5000;
+async function startServer() {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI);
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+    console.log("MongoDB Connected!");
+
+    const PORT = process.env.PORT || 5000;
+
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("Database connection failed:", error.message);
+    process.exit(1);
+  }
+}
+
+startServer();
